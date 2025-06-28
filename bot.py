@@ -174,7 +174,7 @@ async def pickweapon(interaction: discord.Interaction, *, boxes: str):
                         emote = str(emoji)
                         break
             if not emote:
-                emote = f":{emote_name}:"  # fallback to :name:
+                emote = ""  # fallback to nothing
             pick = pick.replace(f"**{weapon_name}**", f"{emote} **{weapon_name}**")
         picks_with_emotes.append(pick)
 
@@ -194,7 +194,7 @@ async def listweapons(interaction: discord.Interaction):
                         emote = str(emoji)
                         break
             if not emote:
-                emote = f":{emote_name}:"
+                emote = ""  # fallback to nothing
             weapon_emotes.append(f"{emote} {weapon}")
         lines.append(f"Box {i + 1}: " + ", ".join(weapon_emotes))
     embed = discord.Embed(
