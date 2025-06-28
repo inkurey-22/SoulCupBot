@@ -230,7 +230,7 @@ async def help_command(interaction: discord.Interaction):
         color=discord.Color.blurple()
     )
     embed.add_field(name="/pickweapon", value="Pick weapons from boxes by specifying box numbers.", inline=False)
-    embed.add_field(name="/listweapons", value="List all available weapons in boxes.", inline=False)
+    embed.add_field(name="/listweapons", value="List all available weapons in each boxes.", inline=False)
     embed.add_field(name="/help", value="Display this help information.", inline=False)
     await interaction.response.send_message(embed=embed)
 
