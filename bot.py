@@ -34,7 +34,10 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
+    if bot.user is not None:
+        print(f'Logged in as {bot.user} (ID: {bot.user.id})')
+    else:
+        print('Logged in, but bot.user is None.')
     print('------')
     try:
         synced = await bot.tree.sync()
@@ -55,7 +58,15 @@ async def createchannel(
     role2: discord.Role
 ):
     # Check if user has the required role
-    if not any(r.name == ADMIN_ROLE for r in interaction.user.roles):
+    member = interaction.user
+    if not isinstance(member, discord.Member):
+        # Try to fetch the member object if not present
+        if interaction.guild:
+            member = await interaction.guild.fetch_member(interaction.user.id)
+        else:
+            await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
+            return
+    if not any(r.name == ADMIN_ROLE for r in member.roles):
         await interaction.response.send_message(f"You need the '{ADMIN_ROLE}' role to use this command.", ephemeral=True)
         return
 
@@ -87,7 +98,7 @@ async def createchannel(
         await interaction.response.send_message(f"Category '{category_name}' not found.", ephemeral=True)
         return
 
-    channel = await guild.create_text_channel(channel_name, overwrites=overwrites, category=category)
+    channel = await guild.create_text_channel(channel_name, overwrites=overwrites, category=category) # type: ignore
     await interaction.response.send_message(
         f"Channel '{channel.mention}' created in {category.mention} and restricted to {role1.mention} and {role2.mention}!",
         ephemeral=True
@@ -99,7 +110,14 @@ async def createchannel(
 )
 async def removeround(interaction: discord.Interaction, prefix: str):
     # Check if user has the required role
-    if not any(r.name == ADMIN_ROLE for r in interaction.user.roles):
+    member = interaction.user
+    if not isinstance(member, discord.Member):
+        if interaction.guild:
+            member = await interaction.guild.fetch_member(interaction.user.id)
+        else:
+            await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
+            return
+    if not any(r.name == ADMIN_ROLE for r in member.roles):
         await interaction.response.send_message(f"You need the '{ADMIN_ROLE}' role to use this command.", ephemeral=True)
         return
 
@@ -217,4 +235,6 @@ async def help_command(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 if __name__ == '__main__':
+    if TOKEN is None:
+        raise RuntimeError("DISCORD_TOKEN environment variable is not set.")
     bot.run(TOKEN)
