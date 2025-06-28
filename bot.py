@@ -80,8 +80,8 @@ async def createchannel(
         role2: discord.PermissionOverwrite(view_channel=True, send_messages=True),
     }
 
-    # Always use the same category (change the name as needed)
-    category_name = CATEGORY  # <-- Change this to your category name
+    # Always use the same category
+    category_name = CATEGORY
     category = discord.utils.get(guild.categories, name=category_name)
     if category is None:
         await interaction.response.send_message(f"Category '{category_name}' not found.", ephemeral=True)
@@ -178,12 +178,6 @@ async def pickweapon(interaction: discord.Interaction, *, boxes: str):
             pick = pick.replace(f"**{weapon_name}**", f"{emote} **{weapon_name}**")
         picks_with_emotes.append(pick)
 
-#    embed = discord.Embed(
-#        title="Your Weapon Picks",
-#        description="\n".join(picks_with_emotes),
-#        color=discord.Color.blurple()
-#    )
-#    await interaction.response.send_message(embed=embed)
     await interaction.response.send_message("Your picks:\n" + "\n".join(picks_with_emotes))
 
 @bot.tree.command(name="listweapons", description="List all available weapons in boxes")
