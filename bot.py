@@ -4,10 +4,24 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import random
 
+CATEGORY = "Tournament"
+ADMIN_ROLE = "TO"
+
+def snake_case(s):
+    return s.lower().replace(" ", "_").replace(".", "")
+
 BOXES = [
-    ["E-Liter", "Charger", "Pencil"],
-    ["Shot", "Splash-O", "52. Gal"],
-    ["Bucket", "Squeezer", "Stamper"]
+    ["Liter", "Charger"],
+    ["Squiffer", "Bamboozler", "Goo Tuber", "Pencil"],
+    ["Heavy", "Hydra", "Ballpoint", "Bow"],
+    ["Pro Shot", ".96 Gal", "Jet Squelcher", "Nova", "H3",
+        "Squeezer", "Mini", "Nautilus", "Gloogas", "Squelchies", "ReefLux"],
+    ["Sploosh", "Junior", "Splash", "Aerospray", "VShot", ".52 Gal",
+        "NZap", "L3", "Dapples", "Dualies", "Tetras"],
+    ["Range Blaster", "Rapid", "Rapid Pro", "Bloblobber", "Explosher"],
+    ["Luna", "Blaster", "Clash Blaster", "Bucket", "TriSlosher", "Machine"],
+    ["Dynamo", "Flingza", "Big Swig", "Tenta Brella", "Stamper"],
+    ["Carbon", "Splat Roller", "Inkbrush", "Octobrush", "Brella", "Undercover", "Wiper"]
 ]
 
 # Load environment variables from .env file
@@ -28,10 +42,6 @@ async def on_ready():
     except Exception as e:
         print(f'Error syncing commands: {e}')
 
-@bot.tree.command(name="hello", description="Say hello!")
-async def hello(interaction: discord.Interaction):
-    await interaction.response.send_message("Hello from a slash command!")
-
 @bot.tree.command(name="createchannel", description="Create a new text channel with restricted roles")
 @discord.app_commands.describe(
     prefix="First letters of the channel",
@@ -44,6 +54,11 @@ async def createchannel(
     role1: discord.Role,
     role2: discord.Role
 ):
+    # Check if user has the required role
+    if not any(r.name == ADMIN_ROLE for r in interaction.user.roles):
+        await interaction.response.send_message(f"You need the '{ADMIN_ROLE}' role to use this command.", ephemeral=True)
+        return
+
     guild = interaction.guild
     if guild is None:
         await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
@@ -66,7 +81,7 @@ async def createchannel(
     }
 
     # Always use the same category (change the name as needed)
-    category_name = "Tournament"  # <-- Change this to your category name
+    category_name = CATEGORY  # <-- Change this to your category name
     category = discord.utils.get(guild.categories, name=category_name)
     if category is None:
         await interaction.response.send_message(f"Category '{category_name}' not found.", ephemeral=True)
@@ -75,6 +90,40 @@ async def createchannel(
     channel = await guild.create_text_channel(channel_name, overwrites=overwrites, category=category)
     await interaction.response.send_message(
         f"Channel '{channel.mention}' created in {category.mention} and restricted to {role1.mention} and {role2.mention}!",
+        ephemeral=True
+    )
+
+@bot.tree.command(name="removeround", description="Remove the channel from the current round")
+@discord.app_commands.describe(
+    prefix="First letters of the channel",
+)
+async def removeround(interaction: discord.Interaction, prefix: str):
+    # Check if user has the required role
+    if not any(r.name == ADMIN_ROLE for r in interaction.user.roles):
+        await interaction.response.send_message(f"You need the '{ADMIN_ROLE}' role to use this command.", ephemeral=True)
+        return
+
+    guild = interaction.guild
+    if guild is None:
+        await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
+        return
+
+    category_name = CATEGORY
+    category = discord.utils.get(guild.categories, name=category_name)
+    if category is None:
+        await interaction.response.send_message(f"Category '{category_name}' not found.", ephemeral=True)
+        return
+
+    channels_to_delete = [ch for ch in category.channels if ch.name.startswith(prefix.lower())]
+    if not channels_to_delete:
+        await interaction.response.send_message(f"No channels found in '{category_name}' starting with '{prefix}'.", ephemeral=True)
+        return
+
+    for channel in channels_to_delete:
+        await channel.delete(reason=f"Removed by removeround command with prefix '{prefix}'")
+
+    await interaction.response.send_message(
+        f"Removed {len(channels_to_delete)} channel(s) in '{category_name}' starting with '{prefix}'.",
         ephemeral=True
     )
 
@@ -110,7 +159,68 @@ async def pickweapon(interaction: discord.Interaction, *, boxes: str):
             weapon = random.choice(weapons)
             picks.append(f"Box {idx}: **{weapon}**")
 
-    await interaction.response.send_message("Your picks:\n" + "\n".join(picks))
+    # Add emotes using snake_case for each weapon name
+    picks_with_emotes = []
+    for pick in picks:
+        if "**" in pick:
+            # Extract weapon name between **
+            weapon_name = pick.split("**")[1]
+            emote_name = snake_case(weapon_name)
+            # Try to find a custom emoji in the guild
+            emote = None
+            if interaction.guild:
+                for emoji in interaction.guild.emojis:
+                    if emoji.name == emote_name:
+                        emote = str(emoji)
+                        break
+            if not emote:
+                emote = f":{emote_name}:"  # fallback to :name:
+            pick = pick.replace(f"**{weapon_name}**", f"{emote} **{weapon_name}**")
+        picks_with_emotes.append(pick)
+
+#    embed = discord.Embed(
+#        title="Your Weapon Picks",
+#        description="\n".join(picks_with_emotes),
+#        color=discord.Color.blurple()
+#    )
+#    await interaction.response.send_message(embed=embed)
+    await interaction.response.send_message("Your picks:\n" + "\n".join(picks_with_emotes))
+
+@bot.tree.command(name="listweapons", description="List all available weapons in boxes")
+async def listweapons(interaction: discord.Interaction):
+    lines = []
+    for i, weapons in enumerate(BOXES):
+        weapon_emotes = []
+        for weapon in weapons:
+            emote_name = snake_case(weapon)
+            emote = None
+            if interaction.guild:
+                for emoji in interaction.guild.emojis:
+                    if emoji.name == emote_name:
+                        emote = str(emoji)
+                        break
+            if not emote:
+                emote = f":{emote_name}:"
+            weapon_emotes.append(f"{emote} {weapon}")
+        lines.append(f"Box {i + 1}: " + ", ".join(weapon_emotes))
+    embed = discord.Embed(
+        title="Available Weapons",
+        description="\n".join(lines),
+        color=discord.Color.blurple()
+    )
+    await interaction.response.send_message(embed=embed)
+
+@bot.tree.command(name="help", description="Display help information")
+async def help_command(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="Help - Available Commands",
+        description="List of all available commands:",
+        color=discord.Color.blurple()
+    )
+    embed.add_field(name="/pickweapon", value="Pick weapons from boxes by specifying box numbers.", inline=False)
+    embed.add_field(name="/listweapons", value="List all available weapons in boxes.", inline=False)
+    embed.add_field(name="/help", value="Display this help information.", inline=False)
+    await interaction.response.send_message(embed=embed)
 
 if __name__ == '__main__':
     bot.run(TOKEN)
