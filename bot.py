@@ -11,17 +11,14 @@ def snake_case(s):
     return s.lower().replace(" ", "_").replace(".", "")
 
 BOXES = [
-    ["Liter", "Charger"],
-    ["Squiffer", "Bamboozler", "Goo Tuber", "Pencil"],
-    ["Heavy", "Hydra", "Ballpoint", "Bow"],
-    ["Pro Shot", ".96 Gal", "Jet Squelcher", "Nova", "H3",
-        "Squeezer", "Mini", "Nautilus", "Gloogas", "Squelchies", "ReefLux"],
-    ["Sploosh", "Junior", "Splash", "Aerospray", "VShot", ".52 Gal",
-        "NZap", "L3", "Dapples", "Dualies", "Tetras"],
-    ["Range Blaster", "Rapid", "Rapid Pro", "Bloblobber", "Explosher"],
-    ["Luna", "Blaster", "Clash Blaster", "Bucket", "TriSlosher", "Machine"],
-    ["Dynamo", "Flingza", "Big Swig", "Tenta Brella", "Stamper"],
-    ["Carbon", "Splat Roller", "Inkbrush", "Octobrush", "Brella", "Undercover", "Wiper"]
+    ["Charger", "Liter", "Pencil", "Hydra", "Bow", "Explosher"],
+    ["Heavy", "Ballpoint", "Jet Squelcher", "Rapid Pro", "Wellstring", "Bloblobber"],
+    ["Edit", "Squiffer", "Tenta Brella", "H3", "Goo Tuber", "Bamboozler", ".96 Gal"],
+    ["Junior", "NZap", "Dread", "Aerospray", "ReefLux", "Nova", "Big Swig"],
+    ["Stamper", "Wiper", "Rapid", "Range Blaster", "SBlast", "Dynamo", "Squelchies", "Gloogas", "Dousers", "Recycled"],
+    ["Squeezer", "Brella", "Painbrush", "Flingza", "Decavitator", "Bucket", "Clash Blaster", "Pro Shot"],
+    ["VShot", ".52 Gal", "Splash", "Mini", "Dualies", "TriSlosher", "L3", "Nautilus", "Machine", "Undercover"],
+    ["Luna", "Blaster", "Sploosh", "Tetras", "Dapples", "Inkbrush", "Octobrush", "Carbon", "Splat Roller"]
 ]
 
 # Load environment variables from .env file
