@@ -4,9 +4,6 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import random
 
-CATEGORY = "Tournament"
-ADMIN_ROLE = "TO"
-
 def snake_case(s):
     return s.lower().replace(" ", "_").replace(".", "")
 
@@ -24,6 +21,8 @@ BOXES = [
 # Load environment variables from .env file
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+CATEGORY = os.getenv('CATEGORY_NAME')
+ADMIN_ROLE = os.getenv('TO_ROLE')
 
 # Set up bot with command prefix
 intents = discord.Intents.default()
@@ -37,8 +36,7 @@ async def on_ready():
         print('Logged in, but bot.user is None.')
     print('------')
     try:
-        synced = await bot.tree.sync()
-        print(f'Synced {len(synced)} slash commands.')
+        await bot.tree.sync()
     except Exception as e:
         print(f'Error syncing commands: {e}')
 
@@ -181,13 +179,8 @@ async def pickweapon(interaction: discord.Interaction, *, boxes: str):
             # Extract weapon name between **
             weapon_name = pick.split("**")[1]
             emote_name = snake_case(weapon_name)
-            # Try to find a custom emoji in the guild
-            emote = None
-            if interaction.guild:
-                for emoji in interaction.guild.emojis:
-                    if emoji.name == emote_name:
-                        emote = str(emoji)
-                        break
+            # Try to find a custom emoji in the application
+            emote = discord.utils.get(interaction.client.emojis, name=emote_name)
             if not emote:
                 emote = ""  # fallback to nothing
             pick = pick.replace(f"**{weapon_name}**", f"{emote} **{weapon_name}**")
@@ -202,12 +195,7 @@ async def listweapons(interaction: discord.Interaction):
         weapon_emotes = []
         for weapon in weapons:
             emote_name = snake_case(weapon)
-            emote = None
-            if interaction.guild:
-                for emoji in interaction.guild.emojis:
-                    if emoji.name == emote_name:
-                        emote = str(emoji)
-                        break
+            emote = discord.utils.get(interaction.client.emojis, name=emote_name)
             if not emote:
                 emote = ""  # fallback to nothing
             weapon_emotes.append(f"{emote} {weapon}")
