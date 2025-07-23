@@ -6,7 +6,6 @@ import random
 from data.weapons import BOXES
 from utils import snake_case
 
-
 class WeaponCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -45,13 +44,14 @@ class WeaponCommands(commands.Cog):
 
         # Add emotes using snake_case for each weapon name
         picks_with_emotes = []
+        app_emotes = await interaction.client.fetch_application_emojis()
         for pick in picks:
             if "**" in pick:
                 # Extract weapon name between **
                 weapon_name = pick.split("**")[1]
                 emote_name = snake_case(weapon_name)
                 # Try to find a custom emoji in the application
-                emote = discord.utils.get(interaction.client.emojis, name=emote_name)
+                emote = discord.utils.get(app_emotes, name=emote_name)
                 if not emote:
                     emote = ""  # fallback to nothing
                 pick = pick.replace(f"**{weapon_name}**", f"{emote} **{weapon_name}**")
@@ -62,11 +62,12 @@ class WeaponCommands(commands.Cog):
     @discord.app_commands.command(name="listweapons", description="List all available weapons in boxes")
     async def listweapons(self, interaction: discord.Interaction):
         lines = []
+        app_emotes = await interaction.client.fetch_application_emojis()
         for i, weapons in enumerate(BOXES):
             weapon_emotes = []
             for weapon in weapons:
                 emote_name = snake_case(weapon)
-                emote = discord.utils.get(interaction.client.emojis, name=emote_name)
+                emote = discord.utils.get(app_emotes, name=emote_name)
                 if not emote:
                     emote = ""  # fallback to nothing
                 weapon_emotes.append(f"{emote} {weapon}")

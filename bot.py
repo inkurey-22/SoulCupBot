@@ -27,11 +27,8 @@ async def on_ready():
     try:
         await bot.tree.sync()
         print('Successfully synced commands')
-        print(f'Carbon snake_case: {("Carbon").lower()}')
-        print(f'Recycled snake_case: {("Recycled").lower()}')
     except Exception as e:
         print(f'Error syncing commands: {e}')
-
 
 if __name__ == '__main__':
     bot.run(TOKEN)
